@@ -1,4 +1,6 @@
 *.class
-target
+target/
 .classpath
 .settings
+.metadata
+plugins/

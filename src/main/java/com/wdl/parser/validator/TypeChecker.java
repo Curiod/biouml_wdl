@@ -15,6 +15,7 @@ import com.wdl.parser.AstRuntime;
 import com.wdl.parser.AstScatter;
 import com.wdl.parser.AstStart;
 import com.wdl.parser.AstStruct;
+import com.wdl.parser.AstSymbol;
 import com.wdl.parser.AstTask;
 import com.wdl.parser.AstText;
 import com.wdl.parser.AstWorkflow;
@@ -218,13 +219,19 @@ public class TypeChecker
                     imp.setAliasName( ( (AstAs)child ).getAlias());
                 else if( child instanceof AstAlias )
                 {
+                	Field impField = null;
                     for( Node n : ( (AstAlias)child ).getChildren() )
                     {
-                        if( n instanceof AstAs )
-                            doc.addField(new Field( ( (AstAs)n ).getAlias(), doc));
+                    	if( n instanceof AstSymbol )
+                    	{
+                    		impField = new Field( ((AstSymbol)n).getName(), imp);
+                    	}
+                    	else if( n instanceof AstAs && impField != null)
+                    	{
+                    		impField.setAlias(((AstAs)n).getAlias());
+                            imp.addField(impField);
+                    	}
                     }
-
-                    imp.setAliasName( ( (AstAlias)child ).getAlias());
                 }
             }
         }

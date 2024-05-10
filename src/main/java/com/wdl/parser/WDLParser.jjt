@@ -60,7 +60,7 @@ TOKEN_MGR_DECLS : {
 	boolean isHeredoc = false;
 }
 
-< DEFAULT > SPECIAL_TOKEN :
+TOKEN :
 {
 < EOL :   ("\n" | "\r"  | "\r\n" ) >
 }
@@ -77,7 +77,47 @@ TOKEN_MGR_DECLS : {
 | <~["\n"]>
 }
 
-TOKEN : /* RESERVED WORDS */
+
+TOKEN : /* STATE SWITCHERS */
+{
+< COMMAND: "command" > : BASH_COMMAND
+
+| < PARAMETER_META : "parameter_meta" > 
+
+| < META : "meta" > 
+
+| < RUNTIME: "runtime" > 
+
+| < HINTS: "hints" > 
+
+| < REQUIREMENTS:  "requirements" > 
+}
+
+
+< BASH_COMMAND > TOKEN:
+{
+< COMMAND_HEREDOC_START: "<<<" > {isHeredoc = true;}: BASH_STRING
+| < COMMAND_START:  < BRACE_L > > 
+{braceLevel+=1;}: BASH_STRING
+}
+
+< BASH_STRING > TOKEN:
+{
+< START : < BRACE_L > > {braceLevel+=1;}
+| < COMMAND_END:  < BRACE_R > > 
+{
+	braceLevel-=1;
+	if (braceLevel == 0 && !isHeredoc)
+	{
+		isHeredoc = false;
+		SwitchTo(DEFAULT);
+	}
+}
+| < COMMAND_HEREDOC_END: ">>>" > : DEFAULT
+| < ANY : (~["{", "}"]) >
+}
+
+ TOKEN : /* RESERVED WORDS */
 {
   < TASK : "task" >
 
@@ -117,17 +157,7 @@ TOKEN : /* RESERVED WORDS */
 
 | < IMPORT : "import" >
 
-| < LEFT : "left" >
-
-| < META : "meta" >
-
 | < OBJECT: "object" >
-
-| < PARAMETER_META : "parameter_meta" >
-
-| < RIGHT : "right" >
-
-| < RUNTIME: "runtime" >
 
 | < SCATTER : "scatter" >
 
@@ -137,7 +167,9 @@ TOKEN : /* RESERVED WORDS */
 
 | < NULL : "null" >
 
-| < STANDARD_FUNCTION :( /* 1.0 */
+| < DOT : ".">
+/*
+| < STANDARD_FUNCTION :( 
 						"floor" | "ceil" | "round" | "sub" | "base_name" |
 						"glob" | "size" | "stdout" | "stderr" | "read_string" |
 						"read_int" | "read_float" | "read_boolean" | 
@@ -147,10 +179,11 @@ TOKEN : /* RESERVED WORDS */
 						"write_object" | "write_objects" | "prefix" | 
 						"length" | "range" | "transpose" | "cross" | "zip" | 
 						"flatten" | "select_first" | "select_all" | "defined" |
-						/* 1.1 */
+						
 						"min" | "max" | "suffix" | "quote" | "squote" | "sep" |
 						"unzip" | "as_map" | "as_pairs" | "keys" | 
 						"collect_by_key" ) >
+*/
 
 | < AND: "&&">
 
@@ -174,8 +207,6 @@ TOKEN : /* RESERVED WORDS */
 
 | < COMMA : "," >
 
-| < SUBSYMBOL : < SYMBOL > ("." < SYMBOL >)+ >
-
 }
 
 TOKEN : /* SPECIAL SYMBOLS */
@@ -183,39 +214,9 @@ TOKEN : /* SPECIAL SYMBOLS */
 < QUESTION_MARK: "?" >
 }
 
-TOKEN : /* STATE SWITCHERS */
-{
-< COMMAND: "command" > : BASH_COMMAND
-}
-
-< BASH_COMMAND > TOKEN:
-{
-< COMMAND_HEREDOC_START: "<<<" > {isHeredoc = true;}: BASH_STRING
-| < COMMAND_START:  < BRACE_L > > 
-{braceLevel+=1;}: BASH_STRING
-}
-
-< BASH_STRING > TOKEN:
-{
-< START : < BRACE_L > > {braceLevel+=1;}
-| < COMMAND_END:  < BRACE_R > > 
-{
-	braceLevel-=1;
-	if (braceLevel == 0 && !isHeredoc)
-	{
-		isHeredoc = false;
-		SwitchTo(DEFAULT);
-	}
-}
-| < COMMAND_HEREDOC_END: ">>>" > : DEFAULT
-| < ANY : (~["{", "}"]) >
-}
-
 TOKEN : /* RESERVED FOR FUTURE VERSIONS */
 {
  < DIRECTORY: "Directory" >
- | < HINTS: "hints" >
- | < REQUIREMENTS:  "requirements" >
 }
 
 TOKEN : /* LITERALS */
@@ -236,8 +237,6 @@ TOKEN : /* IDENTIFIERS */
 | < INTEGER: (<DIGIT>)+>
 | < TRIANGULAR_BRACKET_L : "<" >
 | < TRIANGULAR_BRACKET_R : ">" >
-| < BRACE_L: "{" >
-| < BRACE_R: "}" >
 | < SQUARE_BRACKET_L : "[" >
 | < SQUARE_BRACKET_R : "]" >
 | < OPERATOR : [ "/", "%"] >
@@ -248,6 +247,8 @@ TOKEN : /* IDENTIFIERS */
             | "." (["0"-"9"])+ (<EXPONENT>)?
             | (["0"-"9"])+ (<EXPONENT>)?
     >
+| < BRACE_L: "{" >
+| < BRACE_R: "}" >
 }
 
 /***************************************************************
@@ -269,7 +270,7 @@ AstStart Start() #Start:
 void astElement():
 {}
 {
-	( task()| workflow() | struct() | importWDL())
+	( task()| workflow() | struct() | importWDL() | sepEol())
 }
 
 // version of WDL
@@ -284,8 +285,9 @@ void task() #Task:
 {
     < TASK >
     symbol()
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (input() | 
+    (sepEol() | input() | 
     declaration(true) 
     | output() | command() 
     | runtime()  //deprecated at 1.2 and removed from 2.0
@@ -299,15 +301,14 @@ void meta() #Meta:
 {}
 {
 	< META >
+	(sepEol())*
 	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    metablock()
+    (sepEol())+
     (
-    	symbol() 
-        (< COLON > #RegularFormulaElement)
-        ( 
-        	metadataFormulaElement()
-			| metaArray()
-			| metaMap()
-		)
+    metablock()
+    (sepEol())+
     )*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
@@ -317,17 +318,30 @@ void parameter_meta() #Meta:
 {}
 {
 	< PARAMETER_META >
+	(sepEol())*
 	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    metablock()
+    (sepEol())+
     (
-    	symbol() 
-        (< COLON > #RegularFormulaElement)
-        ( 
-        	metadataFormulaElement()
-			| metaArray()
-			| metaMap()		
-		)
+    metablock()
+    (sepEol())+
     )*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void metablock():
+{}
+{
+	symbol() 
+	(sepEol())*
+    (< COLON > #RegularFormulaElement)
+    (sepEol())*
+    ( 
+    	metadataFormulaElement()
+		| metaArray()
+		| metaMap()		
+	)
 }
 
 void metadataFormulaElement() #MetaFormulaElement:
@@ -344,13 +358,27 @@ void metaArray() #Array:
 }
 {
 	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	(
-	    metadataFormulaElement()
+	(	
+		LOOKAHEAD(3)
+		(sepEol())*
+	    ( 
+	    	metadataFormulaElement()
+			| metaArray()
+			| metaMap()		
+		)
         (
+        	LOOKAHEAD(3)
+        	(sepEol())*
             (< COMMA > #Comma)
-            metadataFormulaElement()
+            (sepEol())*
+            ( 
+		    	metadataFormulaElement()
+				| metaArray()
+				| metaMap()		
+			)
         )*
     )?
+    (sepEol())*
 	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
@@ -360,11 +388,16 @@ void metaMap() #Map:
 }
 {
 	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
     metaKeyValue()
     (
+    	LOOKAHEAD(3)
+    	(sepEol())*
         (< COMMA > #Comma)
+        (sepEol())*
         metaKeyValue()
     )*
+    (sepEol())*
 	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
@@ -373,8 +406,14 @@ void metaKeyValue() #KeyValue:
 {}
 {
 	< SYMBOL > {jjtThis.setKey(token.image);}
+	(sepEol())*
 	(< COLON > #Colon) 
-	metadataFormulaElement()
+	(sepEol())*
+	( 
+    	metadataFormulaElement()
+		| metaArray()
+		| metaMap()		
+	)
 }
 
 void workflow() #Workflow:
@@ -385,8 +424,10 @@ void workflow() #Workflow:
 {
     < WORKFLOW >
     symbol() {jjtThis.setName(token.image);}
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (input()
+    ( sepEol()
+    | input()
     | declaration(true)
     | output() | call() | scatter()
     | meta() | parameter_meta() | conditional())*
@@ -398,15 +439,21 @@ void scatter() #Scatter:
 {}
 {
     < SCATTER > // TODO:
+    (sepEol())*
     ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
     symbol()
+    (sepEol())*
     (< IN >  #In)
+    (sepEol())*
     expression()
+    (sepEol())*
     ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (
-    declaration(true)
+    sepEol()
+    | declaration(true)
     | call() | scatter() | conditional())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
@@ -416,12 +463,15 @@ void conditional() #Conditional:
 {
 	< IF >
 	((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
 	expression()
+	(sepEol())*
 	((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	
+	(sepEol())*
 	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (
-    declaration(true) 
+    sepEol()
+    | declaration(true) 
     | call() 
     | scatter() 
     | conditional())*
@@ -465,21 +515,44 @@ void call() #Call:
 {}
 {
     < CALL >
+    (LOOKAHEAD(2)
+    subSymbol()
+    |
     (< SYMBOL > #Symbol)
+    )
     (
         as()
     )?
     (
-    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-        (< INPUT > #Input)
-        (< COLON > #Colon) 
-        equationSymbol()
-        ((< COMMA > #Comma) equationSymbol())*
-        
+    LOOKAHEAD(3)
+    (sepEol())*
+    (
+    (< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	    (sepEol())*
+	    (
+	        (< INPUT > #Input)
+	        (sepEol())*
+	        (< COLON > #Colon)
+	        (sepEol())* 
+	        equationSymbol()
+	        (
+	        	LOOKAHEAD(3)
+		        (sepEol())*
+		        (< COMMA > #Comma) 
+		        (sepEol())*
+		        equationSymbol()
+	        )*
+	    	(sepEol())*
+	    )?
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     )?
 }
 
+void subSymbol() #SubSymbol:
+{}
+{
+	<SYMBOL> ( < DOT > < SYMBOL >)+
+}
 
 void equationSymbol() #Symbol:
 {}
@@ -501,12 +574,16 @@ void runtime() #Runtime:
 }
 {
     < RUNTIME > 
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-        (
-        symbol() 
-        (< COLON > #RegularFormulaElement)
-        expression() 
-        )*
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
+    
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -522,12 +599,15 @@ void requirements() #Runtime:
 }
 {
     < REQUIREMENTS >
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-        (
-        symbol() 
-        (< COLON > #RegularFormulaElement)
-        expression() 
-        )*
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -543,21 +623,40 @@ void hints() #Hints:
 }
 {
     < HINTS >
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-        (
-        symbol() 
-        (< COLON > #RegularFormulaElement)
-        expression() 
-        )*
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
+void execEngineBlock():
+{}
+{
+	symbol()
+	(sepEol())* 
+    (< COLON > #RegularFormulaElement)
+    (sepEol())*
+    expression()
+}
+
+void sepEol() #EOL:
+{}
+{
+	< EOL>
+}
 void input() #Input:
 {}
 {
     < INPUT >
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (declaration(true))*
+    (sepEol() | declaration(true))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -565,8 +664,9 @@ void output() #Output:
 {}
 {
     < OUTPUT >
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (declaration(true))*
+    (sepEol() | declaration(true))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -575,8 +675,9 @@ void struct() #Struct:
 {
     < STRUCT >
     symbol() {jjtThis.setStructName(token.image);}
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (declaration(false))*
+    (sepEol() | declaration(false))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -585,9 +686,6 @@ void declaration(boolean canBeInitialized) #Declaration:
 }
 {
     type() {jjtThis.setType(token.image.replace(" ", ""));}
-    (
-        < QUESTION_MARK > // parameter can be undefined
-    )?
 
     (< SYMBOL > { jjtThis.setName(token.image);}	#Symbol)
     
@@ -610,11 +708,16 @@ void type():
 {
 }
 {
-    ((< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL >)
-    #Type)
-    | arrayType()
-    | mapType() 
-    | pairType() 
+	(
+	    ((< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL >)
+	    #Type)
+	    | arrayType()
+	    | mapType() 
+	    | pairType()
+	    )
+    (
+        < QUESTION_MARK > // parameter can be undefined
+    )? 
 }
 
 void arrayType() #ArrayType:
@@ -663,14 +766,15 @@ void ternary() #Ternary:
 void expression() #Expression:
 {}
 {
-    (LOOKAHEAD(2) constructor()
+    (LOOKAHEAD(10) subsymbolChain()
+    | LOOKAHEAD(10) constructor()
     | LOOKAHEAD(10) expressionInBrackets() 
     | text()
     | array()
     | map()
     | pair()
-    | LOOKAHEAD(2) containerElement()
-    | LOOKAHEAD(2)function()
+    | LOOKAHEAD(5) containerElement()
+    | LOOKAHEAD(5)function()
     | (< NONE > #None)
     | regularFormulaElement()
     | ternary())+
@@ -680,7 +784,9 @@ void expressionInBrackets() #Expression:
 {}
 {
     (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+    (sepEol())*
     expression()
+    (sepEol())*
     (< BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement)
 }
 
@@ -689,22 +795,37 @@ void containerElement() #ContainerElement:
 {
     < SYMBOL > {jjtThis.setContainerName(token.image);}
     < SQUARE_BRACKET_L >
-    ( < TEXT_STRING> | < SYMBOL > | < SUBSYMBOL> | < INTEGER > ) {jjtThis.setKey(token.image);}
+    (sepEol())*
+    (
+    LOOKAHEAD(2) subsymbolChain() | symbol() | text() | (< INTEGER > #RegularFormulaElement)
+    )
+    (sepEol())*
     < SQUARE_BRACKET_R >
+}
+
+void subsymbolChain() #SubSymbol:
+{}
+{
+	(LOOKAHEAD(5) containerElement() | symbol()) (< DOT > (LOOKAHEAD(5) containerElement() | symbol()))+
 }
 
 void constructor() #Constructor:
 {}
 {
     (< OBJECT > | < SYMBOL >) {jjtThis.setName(token.image);}
+    (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (
+    	LOOKAHEAD(3) (sepEol())*
         constructorKeyValue()
         (
+        	LOOKAHEAD(3) (sepEol())*
 	        (< COMMA > #Comma)
+	        (sepEol())*
 	        constructorKeyValue()
         )*
     )?
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
@@ -712,7 +833,9 @@ void constructorKeyValue() #KeyValue:
 {}
 {
 	< SYMBOL > {jjtThis.setKey(token.image);}
+	(sepEol())*
 	(< COLON > #Colon) 
+	(sepEol())*
 	expression()
 }
 
@@ -722,8 +845,8 @@ void importWDL() #Import:
 {
     < IMPORT >
     text()
-    as()
-    (alias())*
+    (LOOKAHEAD(2) (sepEol())? as())?
+    (LOOKAHEAD(2) (sepEol())? alias())*
 }
 
 
@@ -732,6 +855,7 @@ void alias() #Alias:
 {
 	< ALIAS >
 	symbol()
+	(sepEol())*
 	as()
 }
 
@@ -747,15 +871,19 @@ void text() #Text:
 void function() #Function:
 {}
 {
-    (< SYMBOL > | < STANDARD_FUNCTION >){jjtThis.setName(token.image); }
+    (< SYMBOL >){jjtThis.setName(token.image); }
     (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
     (
+    	LOOKAHEAD(3) (sepEol())*
         expression()
         (
-            < COMMA > #Comma
+        	LOOKAHEAD(3) (sepEol())*
+            (< COMMA > #Comma)
+            (sepEol())*
             expression()
         )*
     )?
+    (sepEol())*
     <  BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement
 
 }
@@ -767,13 +895,12 @@ void regularFormulaElement() #RegularFormulaElement:
     (
             < SYMBOL > {jjtThis.setVariable(true);}
             | < TRUE_OR_FALSE >
-            | < SUBSYMBOL>  {jjtThis.setVariable(true);}
             | < STAR >
             | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
             | < NOT > | < EQUAL >
             | < PLUS > | < MINUS > | <AND> | <OR>
             | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
-            | < INTEGER >
+            | < INTEGER > {jjtThis.setNumber(true);}
 
     ){jjtThis.setElement(token.image);}
 }
@@ -785,6 +912,7 @@ void as() #As:
 {}
 {
     < AS >
+    (sepEol())*
     symbol()
 }
 
@@ -796,27 +924,22 @@ void symbol() #Symbol:
   < SYMBOL > { jjtThis.setName(token.image); }
 }
 
-void subSymbol()#SubSymbol:
-{}
-{
-    < SUBSYMBOL >
-    {
-        jjtThis.setName(token.image);
-    }
-}
-
 void array() #Array:
 {
 }
 {
 	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 	(
+		LOOKAHEAD(3) (sepEol())*
 	    expression()
         (
+        	LOOKAHEAD(3) (sepEol())*
             (< COMMA > #Comma)
+            (sepEol())*
             expression()
         )*
     )?
+    (sepEol())*
 	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
@@ -826,11 +949,15 @@ void map() #Map:
 }
 {
 	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
     keyValue()
     (
+    	LOOKAHEAD(3) (sepEol())*
         (< COMMA > #Comma)
+        (sepEol())*
         keyValue()
     )*
+    (sepEol())*
 	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
@@ -839,18 +966,18 @@ void keyValue() #KeyValue:
 {}
 {
 	primitiveType() {jjtThis.setKey(token.image);}
+	(sepEol())*
     (< COLON > #Colon)
+    (sepEol())*
     expression()
 }
 
 void primitiveType():
 {}
 {
-    < SYMBOL > 
-    | < TRUE_OR_FALSE >
+    < TRUE_OR_FALSE >
     | < FLOATING_POINT_LITERAL > 
     | < INTEGER >
-    | < SUBSYMBOL>
     | < TEXT_STRING > 
 }
 
@@ -858,16 +985,15 @@ void pair() #Pair:
 {
 }
 {
-	(< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement
+	((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
 	    expression()
+	    (sepEol())*
         (< COMMA > #Comma)
+        (sepEol())*
         expression()
-	(< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement
+        (sepEol())*
+	((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
-
-/******************************************************* PARSE FORMULE *************************************************/
-
-
-
 

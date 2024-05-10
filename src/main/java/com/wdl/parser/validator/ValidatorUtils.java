@@ -7,7 +7,7 @@ public class ValidatorUtils
 {
     static String getWorkflowName(String name) throws Exception
     {
-        Pattern pattern = Pattern.compile("/(?<=^|\\/)([a-zA-Z0-9_]+)(?=\\.wdl$|$)/");
+        Pattern pattern = Pattern.compile("(?<=^|/)([a-zA-Z0-9_]+)(?=.wdl$|$)");
         Matcher matcher = pattern.matcher(name);
 
         if( matcher.find() )

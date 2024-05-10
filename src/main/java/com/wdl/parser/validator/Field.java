@@ -6,6 +6,7 @@ public class Field extends NamedPrototype
     boolean canBeEmpty = true;
     Object defaultValue;
     boolean isOptional = false;
+    String alias;
 
     public Field(String name, NamedPrototype parent)
     {
@@ -22,4 +23,8 @@ public class Field extends NamedPrototype
     {
         this.canBeEmpty = canBeEmpty;
     }
+
+	public void setAlias(String alias) {
+		this.alias = alias;
+	}
 }

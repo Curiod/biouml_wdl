@@ -24,30 +24,31 @@ public interface WDLParserTreeConstants
   public int JJTCALL = 18;
   public int JJTSYMBOL = 19;
   public int JJTINPUT = 20;
-  public int JJTEQUAL = 21;
-  public int JJTRUNTIME = 22;
-  public int JJTHINTS = 23;
-  public int JJTOUTPUT = 24;
-  public int JJTSTRUCT = 25;
-  public int JJTDECLARATION = 26;
-  public int JJTTYPE = 27;
-  public int JJTARRAYTYPE = 28;
-  public int JJTPAIRTYPE = 29;
-  public int JJTMAPTYPE = 30;
-  public int JJTTERNARY = 31;
-  public int JJTTHEN = 32;
-  public int JJTELSE = 33;
-  public int JJTEXPRESSION = 34;
-  public int JJTNONE = 35;
-  public int JJTCONTAINERELEMENT = 36;
-  public int JJTCONSTRUCTOR = 37;
-  public int JJTIMPORT = 38;
-  public int JJTALIAS = 39;
-  public int JJTTEXT = 40;
-  public int JJTFUNCTION = 41;
-  public int JJTAS = 42;
-  public int JJTSUBSYMBOL = 43;
-  public int JJTPAIR = 44;
+  public int JJTSUBSYMBOL = 21;
+  public int JJTEQUAL = 22;
+  public int JJTRUNTIME = 23;
+  public int JJTHINTS = 24;
+  public int JJTEOL = 25;
+  public int JJTOUTPUT = 26;
+  public int JJTSTRUCT = 27;
+  public int JJTDECLARATION = 28;
+  public int JJTTYPE = 29;
+  public int JJTARRAYTYPE = 30;
+  public int JJTPAIRTYPE = 31;
+  public int JJTMAPTYPE = 32;
+  public int JJTTERNARY = 33;
+  public int JJTTHEN = 34;
+  public int JJTELSE = 35;
+  public int JJTEXPRESSION = 36;
+  public int JJTNONE = 37;
+  public int JJTCONTAINERELEMENT = 38;
+  public int JJTCONSTRUCTOR = 39;
+  public int JJTIMPORT = 40;
+  public int JJTALIAS = 41;
+  public int JJTTEXT = 42;
+  public int JJTFUNCTION = 43;
+  public int JJTAS = 44;
+  public int JJTPAIR = 45;
 
 
   public String[] jjtNodeName = {
@@ -72,9 +73,11 @@ public interface WDLParserTreeConstants
     "Call",
     "Symbol",
     "Input",
+    "SubSymbol",
     "Equal",
     "Runtime",
     "Hints",
+    "EOL",
     "Output",
     "Struct",
     "Declaration",
@@ -94,8 +97,7 @@ public interface WDLParserTreeConstants
     "Text",
     "Function",
     "As",
-    "SubSymbol",
     "Pair",
   };
 }
-/* JavaCC - OriginalChecksum=fbc11d1e46dac0a46f55429116018948 (do not edit this line) */
+/* JavaCC - OriginalChecksum=550de029a75c132c2ffcc79e712989b5 (do not edit this line) */
