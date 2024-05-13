@@ -4,6 +4,8 @@ package com.wdl.parser;
 
 public class AstCommand extends SimpleNode
 {
+    String command;
+
     public AstCommand(int id)
     {
         super(id);
@@ -18,6 +20,16 @@ public class AstCommand extends SimpleNode
     public String toString()
     {
         return "command";
+    }
+
+    public void setCommand(String text)
+    {
+        this.command = text;
+    }
+
+    public String getCommand()
+    {
+        return this.command;
     }
 
 }

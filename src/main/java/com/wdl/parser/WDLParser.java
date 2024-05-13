@@ -142,6 +142,7 @@ if (jjtc000) {
     try {
       jj_consume_token(TASK);
       symbol();
+jjtn000.setName(token.image);
       label_2:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -1868,6 +1869,7 @@ if (jjtc001) {
          jjtn001.jjtSetLastToken(getToken(0));
        }
           }
+jjtn000.setName(token.image);
           break;
           }
         default:

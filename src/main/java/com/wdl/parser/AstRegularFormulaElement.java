@@ -33,5 +33,11 @@ public class AstRegularFormulaElement extends SimpleNode
         this.isVariable = isVariable;
     }
 
+    @Override
+    public String toString()
+    {
+        return element;
+    }
+
 }
 /* JavaCC - OriginalChecksum=2aa80f9c8aab03ccdcdd259632717c5e (do not edit this line) */

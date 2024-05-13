@@ -27,5 +27,10 @@ public class AstTask extends AstScope
         return name;
     }
 
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
 }
 /* JavaCC - OriginalChecksum=c7f77334a3b2603c0e8c8a585e357b09 (do not edit this line) */

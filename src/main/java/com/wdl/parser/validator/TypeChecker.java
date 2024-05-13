@@ -5,8 +5,11 @@ import java.util.logging.Logger;
 
 import com.wdl.parser.AstAlias;
 import com.wdl.parser.AstAs;
+import com.wdl.parser.AstCall;
+import com.wdl.parser.AstCommand;
 import com.wdl.parser.AstConditional;
 import com.wdl.parser.AstDeclaration;
+import com.wdl.parser.AstExpression;
 import com.wdl.parser.AstHints;
 import com.wdl.parser.AstImport;
 import com.wdl.parser.AstInput;
@@ -20,6 +23,7 @@ import com.wdl.parser.AstTask;
 import com.wdl.parser.AstText;
 import com.wdl.parser.AstWorkflow;
 import com.wdl.parser.Node;
+import com.wdl.parser.SimpleNode;
 
 
 public class TypeChecker
@@ -38,7 +42,7 @@ public class TypeChecker
         try
         {
             validator = VersionValidator.getValidator(version);
-            doc = new DocumentPrototype(version, name);
+            doc = new DocumentPrototype(name, version);
         }
         catch( Exception e )
         {
@@ -130,7 +134,11 @@ public class TypeChecker
         TaskPrototype tskPrototype = new TaskPrototype(tsk.getName());
         for( Node child : tsk.getChildren() )
         {
-            if( child instanceof AstRuntime )
+            if( child instanceof AstCommand )
+            {
+                addCommand((AstCommand)child, tskPrototype);
+            }
+            else if( child instanceof AstRuntime )
             {
                 addRuntime((AstRuntime)child);
             }
@@ -152,7 +160,14 @@ public class TypeChecker
                 addOutputs((AstOutput)child, tskPrototype);
             }
         }
+        doc.addTask(tskPrototype);
 
+    }
+
+    private void addCommand(AstCommand child, TaskPrototype tsk)
+    {
+        if( child.getCommand() != null )
+            tsk.setCommand(child.getCommand());
     }
 
     private void addWorkflow(AstWorkflow wf) throws Exception
@@ -160,7 +175,11 @@ public class TypeChecker
         WorkflowPrototype wfPrototype = new WorkflowPrototype(wf.getName());
         for( Node child : wf.getChildren() )
         {
-            if( child instanceof AstScatter )
+            if( child instanceof AstCall )
+            {
+                addCall((AstCall)child, wfPrototype);
+            }
+            else if( child instanceof AstScatter )
             {
                 addScatter((AstScatter)child);
             }
@@ -190,12 +209,31 @@ public class TypeChecker
                 addOutputs((AstOutput)child, wfPrototype);
             }
         }
+        doc.setWorkflow(wfPrototype);
 
     }
 
-    private void addOutputs(AstOutput child, TaskPrototype wfPrototype)
+    private void addCall(AstCall call, WorkflowPrototype wfPrototype)
     {
-        // TODO Auto-generated method stub
+        CallPrototype callPrototype = new CallPrototype(call.getName(), wfPrototype);
+        wfPrototype.addCall(callPrototype);
+    }
+
+    private void addOutputs(AstOutput output, TaskPrototype tsk) throws Exception
+    {
+        for( Node child : output.getChildren() )
+        {
+            if( child instanceof AstDeclaration )
+            {
+                AstDeclaration decl = (AstDeclaration)child;
+                Field field = new Field(decl.getName(), decl.getType(), tsk);
+                AstExpression expr = decl.getExpression();
+
+                if( expr != null )
+                    field.setValue(generateText(expr));
+                tsk.addOutput(field);
+            }
+        }
 
     }
 
@@ -219,18 +257,18 @@ public class TypeChecker
                     imp.setAliasName( ( (AstAs)child ).getAlias());
                 else if( child instanceof AstAlias )
                 {
-                	Field impField = null;
+                    Field impField = null;
                     for( Node n : ( (AstAlias)child ).getChildren() )
                     {
-                    	if( n instanceof AstSymbol )
-                    	{
-                    		impField = new Field( ((AstSymbol)n).getName(), imp);
-                    	}
-                    	else if( n instanceof AstAs && impField != null)
-                    	{
-                    		impField.setAlias(((AstAs)n).getAlias());
+                        if( n instanceof AstSymbol )
+                        {
+                            impField = new Field( ( (AstSymbol)n ).getName(), imp);
+                        }
+                        else if( n instanceof AstAs && impField != null )
+                        {
+                            impField.setAlias( ( (AstAs)n ).getAlias());
                             imp.addField(impField);
-                    	}
+                        }
                     }
                 }
             }
@@ -241,4 +279,42 @@ public class TypeChecker
 
 
     }
+
+    public DocumentPrototype getPrototype(AstStart astStart)
+    {
+        check(astStart);
+        return doc;
+    }
+
+    private String generateText(SimpleNode node)
+    {
+        StringBuilder sb = new StringBuilder();
+        addElement(node, sb);
+        return sb.toString();
+    }
+
+    private void addElement(Node currentNode, StringBuilder sb)
+    {
+        //        com.wdl.parser.Token firstToken = ( (SimpleNode)currentNode ).jjtGetFirstToken();
+        //        if( !currentNode.toString().isEmpty() )
+        //        {
+        //            if( firstToken != null && firstToken.specialToken != null )
+        //                sb.append(getSpecialTokens(firstToken.specialToken));
+        //        }
+
+        sb.append(currentNode.toString());
+
+        for( int i = 0; i < currentNode.jjtGetNumChildren(); i++ )
+        {
+            try
+            {
+                addElement(currentNode.jjtGetChild(i), sb);
+            }
+            catch( Throwable t )
+            {
+                log.log(Level.SEVERE, "Can't add element(" + currentNode.jjtGetChild(i) + "): " + t);
+            }
+        }
+    }
+
 }

@@ -349,7 +349,7 @@ void task()      :
     try {
 /*@egen*/
     < TASK >
-    symbol()
+    symbol() {jjtn000.setName(token.image);}
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -1522,7 +1522,7 @@ void call()      :
        }
      }
 /*@egen*/        )
-    )
+    {jjtn000.setName(token.image);}) 
     (
         as()
     )?

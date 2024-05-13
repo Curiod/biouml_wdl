@@ -284,7 +284,7 @@ void task() #Task:
 {}
 {
     < TASK >
-    symbol()
+    symbol() {jjtThis.setName(token.image);}
     (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (sepEol() | input() | 
@@ -519,7 +519,7 @@ void call() #Call:
     subSymbol()
     |
     (< SYMBOL > #Symbol)
-    )
+    {jjtThis.setName(token.image);}) 
     (
         as()
     )?

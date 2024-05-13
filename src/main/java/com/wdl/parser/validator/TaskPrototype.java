@@ -1,14 +1,15 @@
 package com.wdl.parser.validator;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TaskPrototype extends Scope
 {
-    Map<String, Field> inputs;
-    Map<String, Field> outputs;
-    String command;
-    Map<String, Field> runtime; // or requirements in versions > 1.1
-    Map<String, Field> hints;
+    Map<String, Field> inputs = new HashMap<String, Field>();
+    Map<String, Field> outputs = new HashMap<String, Field>();
+    private String command;
+    Map<String, Field> runtime = new HashMap<String, Field>(); // or requirements in versions > 1.1
+    Map<String, Field> hints = new HashMap<String, Field>();
 
     public TaskPrototype(String name)
     {

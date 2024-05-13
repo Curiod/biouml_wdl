@@ -35,5 +35,15 @@ public class AstDeclaration extends SimpleNode
         }
         return null;
     }
+
+    public AstExpression getExpression()
+    {
+        for( Node child : getChildren() )
+        {
+            if( child instanceof AstExpression )
+                return (AstExpression)child;
+        }
+        return null;
+    }
 }
 /* JavaCC - OriginalChecksum=050ba8acbf98d4792f732a9ebdfd1460 (do not edit this line) */

@@ -4,6 +4,8 @@ package com.wdl.parser;
 
 public class AstCall extends SimpleNode
 {
+    private String name;
+
     public AstCall(int id)
     {
         super(id);
@@ -18,6 +20,16 @@ public class AstCall extends SimpleNode
     public String toString()
     {
         return "call";
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
 }
