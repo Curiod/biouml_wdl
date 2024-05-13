@@ -26,8 +26,11 @@ import javax.swing.UIManager;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 
+import org.apache.velocity.app.VelocityEngine;
+
 import com.wdl.parser.AstStart;
 import com.wdl.parser.WDLParser;
+import com.wdl.parser.validator.DocumentPrototype;
 import com.wdl.parser.validator.TypeChecker;
 
 
@@ -44,6 +47,7 @@ class TextEditor extends JFrame implements ActionListener
 
     protected WDLTab wdlTab;
     TypeChecker checker;
+    String fileName = "WDLscript";
 
     // Constructor
     TextEditor()
@@ -73,6 +77,11 @@ class TextEditor extends JFrame implements ActionListener
         valButton.setPreferredSize(new Dimension(45, 30));
         valButton.addActionListener(new ValidateWDL());
 
+        // Convert WDL to Nextflow button
+        JButton convButton = new JButton("Convert WDL to Nextflow");
+        convButton.setPreferredSize(new Dimension(45, 30));
+        convButton.addActionListener(new ConvertWDL());
+
         // ClearLog button
         JButton clearLogButton = new JButton("Clear Log");
         clearLogButton.addActionListener(new ClearLogAction());
@@ -94,6 +103,7 @@ class TextEditor extends JFrame implements ActionListener
 
         mb.add(m1);
         mb.add(valButton);
+        mb.add(convButton);
         mb.add(clearLogButton);
 
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -182,7 +192,7 @@ class TextEditor extends JFrame implements ActionListener
 
                     // Set the text
                     wdlTab.setText(sl);
-
+                    fileName = fi.getName();
                     fr.close();
                     br.close();
                 }
@@ -235,6 +245,51 @@ class TextEditor extends JFrame implements ActionListener
             {
                 if( !wasException )
                     log.log(Level.FINE, "Your wdl file is valid!");
+            }
+        }
+    }
+
+    class ConvertWDL extends AbstractAction
+    {
+        public static final String KEY = "Convert";
+
+        public ConvertWDL()
+        {
+            super(KEY);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            VelocityEngine velocityEngine = new VelocityEngine();
+            velocityEngine.init();
+
+            //Template t = velocityEngine.getTemplate("./index.vm");
+
+            //            VelocityContext context = new VelocityContext();
+            //            context.put("name", "World");
+
+            //            StringWriter writer = new StringWriter();
+            //            t.merge( context, writer );
+            WDLParser parser = new WDLParser();
+            boolean wasException = false;
+            try
+            {
+                AstStart astStart = parser.parse(new StringReader(wdlTab.getText()));
+                checker = new TypeChecker(parser.getVersion());
+                DocumentPrototype doc = checker.getPrototype(astStart);
+
+
+            }
+            catch( Exception ex )
+            {
+                wasException = true;
+                log.log(Level.SEVERE, "WDL converting error: " + ex.getMessage());
+            }
+            finally
+            {
+                if( !wasException )
+                    log.log(Level.FINE, "All is fine!");
             }
         }
     }

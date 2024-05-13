@@ -1,5 +1,6 @@
 package com.wdl.texteditor;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -11,16 +12,20 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
+import javax.swing.border.EmptyBorder;
 
 public class WDLTab extends JSplitPane
 {
     protected Logger log = Logger.getLogger(WDLTab.class.getName());
 
     protected TextPaneAppender appender;
-    protected JTextPane textPane;
+    protected JTextPane wdlPane;
+    protected JTextPane nfPane;
 
     protected String[] categoryList = {"com.wdl"};
 
@@ -33,14 +38,39 @@ public class WDLTab extends JSplitPane
 
         setPreferredSize(new Dimension(500, 500));
 
-        textPane = new WDLPane();
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+        topPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BorderLayout());
+        bottomPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+        wdlPane = new WDLPane();
 
         appender = new TextPaneAppender(new PatternFormatter("%4$s :  %5$s%n"), "Application Log");
         appender.setLevel(Level.SEVERE);
         appender.addToCategories(categoryList);
-        textPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        JScrollPane scroll = new JScrollPane(textPane);
-        setLeftComponent(scroll);
+        wdlPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        nfPane = new JTextPane();
+        JScrollPane scrollWdl = new JScrollPane(wdlPane);
+        JScrollPane scrollNf = new JScrollPane(nfPane);
+
+        JLabel wdlLabel = new JLabel("WDL");
+        wdlLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        topPanel.add(wdlLabel, BorderLayout.NORTH);
+        topPanel.add(scrollWdl);
+
+        JLabel nfLabel = new JLabel("Nextflow");
+        nfLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        bottomPanel.add(nfLabel, BorderLayout.NORTH);
+        bottomPanel.add(scrollNf);
+
+        JSplitPane leftPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, bottomPanel);
+        leftPane.setResizeWeight(0.6);
+
+        setLeftComponent(leftPane);
         setRightComponent(appender.getLogTextPanel());
         setResizeWeight(0.4);
 
@@ -49,19 +79,19 @@ public class WDLTab extends JSplitPane
 
     String getText()
     {
-        return textPane.getText();
+        return wdlPane.getText();
     }
 
     void setText(String text) throws InterruptedException
     {
-        textPane.setText(text);
+        wdlPane.setText(text);
     }
 
 
 
     public JEditorPane getEditorPane()
     {
-        return textPane;
+        return wdlPane;
     }
 
     class PatternFormatter extends Formatter
