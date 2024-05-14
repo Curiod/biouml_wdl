@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +27,8 @@ import javax.swing.UIManager;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import com.wdl.parser.AstStart;
@@ -191,7 +194,7 @@ class TextEditor extends JFrame implements ActionListener
                     }
 
                     // Set the text
-                    wdlTab.setText(sl);
+                    wdlTab.setWDLText(sl);
                     fileName = fi.getName();
                     fr.close();
                     br.close();
@@ -206,7 +209,7 @@ class TextEditor extends JFrame implements ActionListener
         {
             try
             {
-                wdlTab.setText("");
+                wdlTab.setWDLText("");
             }
             catch( Exception ex )
             {
@@ -261,16 +264,6 @@ class TextEditor extends JFrame implements ActionListener
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            VelocityEngine velocityEngine = new VelocityEngine();
-            velocityEngine.init();
-
-            //Template t = velocityEngine.getTemplate("./index.vm");
-
-            //            VelocityContext context = new VelocityContext();
-            //            context.put("name", "World");
-
-            //            StringWriter writer = new StringWriter();
-            //            t.merge( context, writer );
             WDLParser parser = new WDLParser();
             boolean wasException = false;
             try
@@ -279,6 +272,18 @@ class TextEditor extends JFrame implements ActionListener
                 checker = new TypeChecker(parser.getVersion());
                 DocumentPrototype doc = checker.getPrototype(astStart);
 
+                VelocityEngine velocityEngine = new VelocityEngine();
+                velocityEngine.init();
+
+                Template t = velocityEngine.getTemplate("vm_templates/index.vm");
+
+                VelocityContext context = new VelocityContext();
+                context.put("tasks", doc.getTasks());
+                context.put("workflow", doc.getWorkflow());
+
+                StringWriter writer = new StringWriter();
+                t.merge(context, writer);
+                wdlTab.setNfText(writer.toString());
 
             }
             catch( Exception ex )

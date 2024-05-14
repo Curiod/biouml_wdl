@@ -33,4 +33,9 @@ public class Field extends NamedPrototype
     {
         this.value = value;
     }
+
+    public String getValue()
+    {
+        return value;
+    }
 }

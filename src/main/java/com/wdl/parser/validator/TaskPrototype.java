@@ -30,4 +30,14 @@ public class TaskPrototype extends Scope
     {
         this.command = command;
     }
+
+    public String getCommand()
+    {
+        return command;
+    }
+
+    public Map<String, Field> getOutputs()
+    {
+        return outputs;
+    }
 }

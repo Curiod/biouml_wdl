@@ -36,7 +36,7 @@ public class WDLTab extends JSplitPane
     {
         super(JSplitPane.HORIZONTAL_SPLIT, false);
 
-        setPreferredSize(new Dimension(500, 500));
+        setPreferredSize(new Dimension(600, 800));
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
@@ -46,14 +46,19 @@ public class WDLTab extends JSplitPane
         bottomPanel.setLayout(new BorderLayout());
         bottomPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-        wdlPane = new WDLPane();
+        JPanel logPanel = new JPanel();
+        logPanel.setLayout(new BorderLayout());
+        logPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         appender = new TextPaneAppender(new PatternFormatter("%4$s :  %5$s%n"), "Application Log");
         appender.setLevel(Level.SEVERE);
         appender.addToCategories(categoryList);
+
+        wdlPane = new WDLPane();
         wdlPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
         nfPane = new JTextPane();
+        nfPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
         JScrollPane scrollWdl = new JScrollPane(wdlPane);
         JScrollPane scrollNf = new JScrollPane(nfPane);
 
@@ -67,12 +72,17 @@ public class WDLTab extends JSplitPane
         bottomPanel.add(nfLabel, BorderLayout.NORTH);
         bottomPanel.add(scrollNf);
 
+        JLabel logLabel = new JLabel("Log");
+        logLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        logPanel.add(logLabel, BorderLayout.NORTH);
+        logPanel.add(appender.getLogTextPanel());
+
         JSplitPane leftPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, bottomPanel);
-        leftPane.setResizeWeight(0.6);
+        leftPane.setResizeWeight(0.5);
 
         setLeftComponent(leftPane);
-        setRightComponent(appender.getLogTextPanel());
-        setResizeWeight(0.4);
+        setRightComponent(logPanel);
+        setResizeWeight(0.6);
 
     }
 
@@ -82,12 +92,15 @@ public class WDLTab extends JSplitPane
         return wdlPane.getText();
     }
 
-    void setText(String text) throws InterruptedException
+    void setWDLText(String text) throws InterruptedException
     {
         wdlPane.setText(text);
     }
 
-
+    void setNfText(String text)
+    {
+        nfPane.setText(text);
+    }
 
     public JEditorPane getEditorPane()
     {

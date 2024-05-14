@@ -2,15 +2,31 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package com.wdl.parser;
 
-public
-class AstBashString extends SimpleNode {
-  public AstBashString(int id) {
-    super(id);
-  }
+public class AstBashString extends SimpleNode
+{
+    private String command;
 
-  public AstBashString(WDLParser p, int id) {
-    super(p, id);
-  }
+    public AstBashString(int id)
+    {
+        super(id);
+    }
+
+    public AstBashString(WDLParser p, int id)
+    {
+        super(p, id);
+    }
+
+    public void setCommand(String text)
+    {
+        this.command = text;
+
+    }
+
+    @Override
+    public String toString()
+    {
+        return "";
+    }
 
 }
 /* JavaCC - OriginalChecksum=207bb284d064e419f9fb5850dc728b3e (do not edit this line) */

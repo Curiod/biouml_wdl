@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import com.wdl.parser.AstAlias;
 import com.wdl.parser.AstAs;
+import com.wdl.parser.AstBashString;
 import com.wdl.parser.AstCall;
 import com.wdl.parser.AstCommand;
 import com.wdl.parser.AstConditional;
@@ -24,6 +25,7 @@ import com.wdl.parser.AstText;
 import com.wdl.parser.AstWorkflow;
 import com.wdl.parser.Node;
 import com.wdl.parser.SimpleNode;
+import com.wdl.parser.Token;
 
 
 public class TypeChecker
@@ -166,8 +168,11 @@ public class TypeChecker
 
     private void addCommand(AstCommand child, TaskPrototype tsk)
     {
-        if( child.getCommand() != null )
-            tsk.setCommand(child.getCommand());
+        if( child.getBashString() != null )
+        {
+            AstBashString str = child.getBashString();
+            tsk.setCommand(generateText(str, true).substring(2).replaceFirst("^\\s*", "")); // remove first new line
+        }
     }
 
     private void addWorkflow(AstWorkflow wf) throws Exception
@@ -230,7 +235,7 @@ public class TypeChecker
                 AstExpression expr = decl.getExpression();
 
                 if( expr != null )
-                    field.setValue(generateText(expr));
+                    field.setValue(generateText(expr, false));
                 tsk.addOutput(field);
             }
         }
@@ -286,21 +291,24 @@ public class TypeChecker
         return doc;
     }
 
-    private String generateText(SimpleNode node)
+    private String generateText(SimpleNode node, boolean specialTokensNeeded)
     {
         StringBuilder sb = new StringBuilder();
-        addElement(node, sb);
+        addElement(node, sb, specialTokensNeeded);
         return sb.toString();
     }
 
-    private void addElement(Node currentNode, StringBuilder sb)
+    private void addElement(Node currentNode, StringBuilder sb, boolean specialTokensNeeded)
     {
-        //        com.wdl.parser.Token firstToken = ( (SimpleNode)currentNode ).jjtGetFirstToken();
-        //        if( !currentNode.toString().isEmpty() )
-        //        {
-        //            if( firstToken != null && firstToken.specialToken != null )
-        //                sb.append(getSpecialTokens(firstToken.specialToken));
-        //        }
+        if( specialTokensNeeded )
+        {
+            com.wdl.parser.Token firstToken = ( (SimpleNode)currentNode ).jjtGetFirstToken();
+            if( !currentNode.toString().isEmpty() )
+            {
+                if( firstToken != null && firstToken.specialToken != null )
+                    sb.append(getSpecialTokens(firstToken.specialToken));
+            }
+        }
 
         sb.append(currentNode.toString());
 
@@ -308,13 +316,24 @@ public class TypeChecker
         {
             try
             {
-                addElement(currentNode.jjtGetChild(i), sb);
+                addElement(currentNode.jjtGetChild(i), sb, specialTokensNeeded);
             }
             catch( Throwable t )
             {
                 log.log(Level.SEVERE, "Can't add element(" + currentNode.jjtGetChild(i) + "): " + t);
             }
         }
+    }
+
+    private String getSpecialTokens(Token token)
+    {
+        StringBuilder result = new StringBuilder("");
+        if( token != null )
+        {
+            result.append(getSpecialTokens(token.specialToken));
+            result.append(token);
+        }
+        return result.toString();
     }
 
 }

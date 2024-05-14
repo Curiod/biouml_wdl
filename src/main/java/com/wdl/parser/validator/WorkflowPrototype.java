@@ -10,12 +10,17 @@ public class WorkflowPrototype extends TaskPrototype
     {
         super(name);
     }
+
     public void addCall(CallPrototype callPrototype)
     {
         calls.add(callPrototype);
 
     }
 
+    public List<CallPrototype> getCalls()
+    {
+        return calls;
+    }
 
 
 }

@@ -1341,45 +1341,41 @@ void command()         :
 /*@egen*/                       )
 		(/*@bgen(jjtree) BashString */
                  {
-                   AstBashString jjtn002 = new AstBashString(JJTBASHSTRING);
-                   boolean jjtc002 = true;
-                   jjtree.openNodeScope(jjtn002);
-                   jjtn002.jjtSetFirstToken(getToken(1));
-                 }
-                 try {
-/*@egen*/(< ANY > | < START > | < COMMAND_END > )*/*@bgen(jjtree)*/
-                 } finally {
-                   if (jjtc002) {
-                     jjtree.closeNodeScope(jjtn002, true);
-                     jjtn002.jjtSetLastToken(getToken(0));
-                   }
-                 }
-/*@egen*/            )
-		(/*@bgen(jjtree) RegularFormulaElement */
-                 {
-                   AstRegularFormulaElement jjtn003 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+                   AstBashString jjtn003 = new AstBashString(JJTBASHSTRING);
                    boolean jjtc003 = true;
                    jjtree.openNodeScope(jjtn003);
                    jjtn003.jjtSetFirstToken(getToken(1));
                  }
                  try {
-/*@egen*/(< COMMAND_HEREDOC_END >/*@bgen(jjtree)*/
-                                          {
-                                            jjtree.closeNodeScope(jjtn003, true);
-                                            jjtc003 = false;
-                                            jjtn003.jjtSetLastToken(getToken(0));
-                                          }
-/*@egen*/ {jjtn003.setElement(token.image);})/*@bgen(jjtree)*/
+/*@egen*/(/*@bgen(jjtree) RegularFormulaElement */
+                  {
+                    AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+                    boolean jjtc002 = true;
+                    jjtree.openNodeScope(jjtn002);
+                    jjtn002.jjtSetFirstToken(getToken(1));
+                  }
+                  try {
+/*@egen*/(< ANY > | < START > | < COMMAND_END >/*@bgen(jjtree)*/
+                                                        {
+                                                          jjtree.closeNodeScope(jjtn002, true);
+                                                          jjtc002 = false;
+                                                          jjtn002.jjtSetLastToken(getToken(0));
+                                                        }
+/*@egen*/{jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
+                  } finally {
+                    if (jjtc002) {
+                      jjtree.closeNodeScope(jjtn002, true);
+                      jjtn002.jjtSetLastToken(getToken(0));
+                    }
+                  }
+/*@egen*/                       )*/*@bgen(jjtree)*/
                  } finally {
                    if (jjtc003) {
                      jjtree.closeNodeScope(jjtn003, true);
                      jjtn003.jjtSetLastToken(getToken(0));
                    }
                  }
-/*@egen*/                       )
-	)
-	|
-    (
+/*@egen*/            )
 		(/*@bgen(jjtree) RegularFormulaElement */
                  {
                    AstRegularFormulaElement jjtn004 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
@@ -1388,12 +1384,12 @@ void command()         :
                    jjtn004.jjtSetFirstToken(getToken(1));
                  }
                  try {
-/*@egen*/(< COMMAND_START >/*@bgen(jjtree)*/
-                                    {
-                                      jjtree.closeNodeScope(jjtn004, true);
-                                      jjtc004 = false;
-                                      jjtn004.jjtSetLastToken(getToken(0));
-                                    }
+/*@egen*/(< COMMAND_HEREDOC_END >/*@bgen(jjtree)*/
+                                          {
+                                            jjtree.closeNodeScope(jjtn004, true);
+                                            jjtc004 = false;
+                                            jjtn004.jjtSetLastToken(getToken(0));
+                                          }
 /*@egen*/ {jjtn004.setElement(token.image);})/*@bgen(jjtree)*/
                  } finally {
                    if (jjtc004) {
@@ -1402,55 +1398,80 @@ void command()         :
                    }
                  }
 /*@egen*/                       )
+	)
+	|
+    (
+		(/*@bgen(jjtree) RegularFormulaElement */
+                 {
+                   AstRegularFormulaElement jjtn005 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+                   boolean jjtc005 = true;
+                   jjtree.openNodeScope(jjtn005);
+                   jjtn005.jjtSetFirstToken(getToken(1));
+                 }
+                 try {
+/*@egen*/(< COMMAND_START >/*@bgen(jjtree)*/
+                                    {
+                                      jjtree.closeNodeScope(jjtn005, true);
+                                      jjtc005 = false;
+                                      jjtn005.jjtSetLastToken(getToken(0));
+                                    }
+/*@egen*/ {jjtn005.setElement(token.image);})/*@bgen(jjtree)*/
+                 } finally {
+                   if (jjtc005) {
+                     jjtree.closeNodeScope(jjtn005, true);
+                     jjtn005.jjtSetLastToken(getToken(0));
+                   }
+                 }
+/*@egen*/                       )
 		(/*@bgen(jjtree) BashString */
                   {
-                    AstBashString jjtn005 = new AstBashString(JJTBASHSTRING);
-                    boolean jjtc005 = true;
-                    jjtree.openNodeScope(jjtn005);
-                    jjtn005.jjtSetFirstToken(getToken(1));
+                    AstBashString jjtn006 = new AstBashString(JJTBASHSTRING);
+                    boolean jjtc006 = true;
+                    jjtree.openNodeScope(jjtn006);
+                    jjtn006.jjtSetFirstToken(getToken(1));
                   }
                   try {
 /*@egen*/ (bashString())*/*@bgen(jjtree)*/
-                  } catch (Throwable jjte005) {
-                    if (jjtc005) {
-                      jjtree.clearNodeScope(jjtn005);
-                      jjtc005 = false;
+                  } catch (Throwable jjte006) {
+                    if (jjtc006) {
+                      jjtree.clearNodeScope(jjtn006);
+                      jjtc006 = false;
                     } else {
                       jjtree.popNode();
                     }
-                    if (jjte005 instanceof RuntimeException) {
-                      throw (RuntimeException)jjte005;
+                    if (jjte006 instanceof RuntimeException) {
+                      throw (RuntimeException)jjte006;
                     }
-                    if (jjte005 instanceof ParseException) {
-                      throw (ParseException)jjte005;
+                    if (jjte006 instanceof ParseException) {
+                      throw (ParseException)jjte006;
                     }
-                    throw (Error)jjte005;
+                    throw (Error)jjte006;
                   } finally {
-                    if (jjtc005) {
-                      jjtree.closeNodeScope(jjtn005, true);
-                      jjtn005.jjtSetLastToken(getToken(0));
+                    if (jjtc006) {
+                      jjtree.closeNodeScope(jjtn006, true);
+                      jjtn006.jjtSetLastToken(getToken(0));
                     }
                   }
 /*@egen*/            )
 		(/*@bgen(jjtree) RegularFormulaElement */
                  {
-                   AstRegularFormulaElement jjtn006 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-                   boolean jjtc006 = true;
-                   jjtree.openNodeScope(jjtn006);
-                   jjtn006.jjtSetFirstToken(getToken(1));
+                   AstRegularFormulaElement jjtn007 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+                   boolean jjtc007 = true;
+                   jjtree.openNodeScope(jjtn007);
+                   jjtn007.jjtSetFirstToken(getToken(1));
                  }
                  try {
 /*@egen*/(< COMMAND_END >/*@bgen(jjtree)*/
                                   {
-                                    jjtree.closeNodeScope(jjtn006, true);
-                                    jjtc006 = false;
-                                    jjtn006.jjtSetLastToken(getToken(0));
+                                    jjtree.closeNodeScope(jjtn007, true);
+                                    jjtc007 = false;
+                                    jjtn007.jjtSetLastToken(getToken(0));
                                   }
-/*@egen*/ {jjtn006.setElement(token.image);})/*@bgen(jjtree)*/
+/*@egen*/ {jjtn007.setElement(token.image);})/*@bgen(jjtree)*/
                  } finally {
-                   if (jjtc006) {
-                     jjtree.closeNodeScope(jjtn006, true);
-                     jjtn006.jjtSetLastToken(getToken(0));
+                   if (jjtc007) {
+                     jjtree.closeNodeScope(jjtn007, true);
+                     jjtn007.jjtSetLastToken(getToken(0));
                    }
                  }
 /*@egen*/                       )
@@ -1481,15 +1502,101 @@ void command()         :
 void bashString():
 {}
 {
-	placeholder() | < ANY > | < COMMAND_HEREDOC_END >
+	placeholder() 
+	| (/*@bgen(jjtree) RegularFormulaElement */
+           {
+             AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+             boolean jjtc001 = true;
+             jjtree.openNodeScope(jjtn001);
+             jjtn001.jjtSetFirstToken(getToken(1));
+           }
+           try {
+/*@egen*/(< ANY >/*@bgen(jjtree)*/
+                    {
+                      jjtree.closeNodeScope(jjtn001, true);
+                      jjtc001 = false;
+                      jjtn001.jjtSetLastToken(getToken(0));
+                    }
+/*@egen*/ {jjtn001.setElement(token.image);})/*@bgen(jjtree)*/
+           } finally {
+             if (jjtc001) {
+               jjtree.closeNodeScope(jjtn001, true);
+               jjtn001.jjtSetLastToken(getToken(0));
+             }
+           }
+/*@egen*/                       )
+	| (/*@bgen(jjtree) RegularFormulaElement */
+           {
+             AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+             boolean jjtc002 = true;
+             jjtree.openNodeScope(jjtn002);
+             jjtn002.jjtSetFirstToken(getToken(1));
+           }
+           try {
+/*@egen*/(< COMMAND_HEREDOC_END >/*@bgen(jjtree)*/
+                                   {
+                                     jjtree.closeNodeScope(jjtn002, true);
+                                     jjtc002 = false;
+                                     jjtn002.jjtSetLastToken(getToken(0));
+                                   }
+/*@egen*/{jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
+           } finally {
+             if (jjtc002) {
+               jjtree.closeNodeScope(jjtn002, true);
+               jjtn002.jjtSetLastToken(getToken(0));
+             }
+           }
+/*@egen*/                       )
 }
 
 void placeholder():
 {}
 {
-	< START > 
+	(/*@bgen(jjtree) RegularFormulaElement */
+         {
+           AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+           boolean jjtc001 = true;
+           jjtree.openNodeScope(jjtn001);
+           jjtn001.jjtSetFirstToken(getToken(1));
+         }
+         try {
+/*@egen*/(< START >/*@bgen(jjtree)*/
+                    {
+                      jjtree.closeNodeScope(jjtn001, true);
+                      jjtc001 = false;
+                      jjtn001.jjtSetLastToken(getToken(0));
+                    }
+/*@egen*/ {jjtn001.setElement(token.image);})/*@bgen(jjtree)*/
+         } finally {
+           if (jjtc001) {
+             jjtree.closeNodeScope(jjtn001, true);
+             jjtn001.jjtSetLastToken(getToken(0));
+           }
+         }
+/*@egen*/                       )
 	(bashString())*
-	< COMMAND_END > 
+	(/*@bgen(jjtree) RegularFormulaElement */
+         {
+           AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+           boolean jjtc002 = true;
+           jjtree.openNodeScope(jjtn002);
+           jjtn002.jjtSetFirstToken(getToken(1));
+         }
+         try {
+/*@egen*/(< COMMAND_END >/*@bgen(jjtree)*/
+                          {
+                            jjtree.closeNodeScope(jjtn002, true);
+                            jjtc002 = false;
+                            jjtn002.jjtSetLastToken(getToken(0));
+                          }
+/*@egen*/ {jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
+         } finally {
+           if (jjtc002) {
+             jjtree.closeNodeScope(jjtn002, true);
+             jjtn002.jjtSetLastToken(getToken(0));
+           }
+         }
+/*@egen*/                       ) 
 }
 
 void call()      :

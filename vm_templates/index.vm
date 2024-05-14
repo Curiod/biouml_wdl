@@ -1,0 +1,27 @@
+#foreach( $entry in $tasks.entrySet() )
+#set ($task = $entry.value )
+process ${task.getName()} {
+	
+    output:
+#foreach( $outputEntry in $task.getOutputs().entrySet() )
+#set ($output = $outputEntry.value )
+#if ( ${output.getValue()} == "stdout()" )
+        stdout
+#else
+        ${output.getValue()}
+#end
+#end
+    
+    script:
+        """
+        ${task.getCommand()}
+        """
+}
+#end
+ 
+workflow ${workflow.getName()} {
+   
+    #foreach( $call in $workflow.getCalls() )
+    ${call.getName()}()	
+    #end
+}

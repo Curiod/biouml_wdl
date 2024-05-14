@@ -486,7 +486,7 @@ void command() #Command:
     (
     (
 		((< COMMAND_HEREDOC_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-		((< ANY > | < START > | < COMMAND_END > )* #BashString)
+		(((< ANY > | < START > | < COMMAND_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
 		((< COMMAND_HEREDOC_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 	)
 	|
@@ -500,15 +500,17 @@ void command() #Command:
 void bashString():
 {}
 {
-	placeholder() | < ANY > | < COMMAND_HEREDOC_END >
+	placeholder() 
+	| ((< ANY > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	| ((< COMMAND_HEREDOC_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
 
 void placeholder():
 {}
 {
-	< START > 
+	((< START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 	(bashString())*
-	< COMMAND_END > 
+	((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement) 
 }
 
 void call() #Call:

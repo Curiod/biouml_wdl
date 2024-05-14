@@ -34,12 +34,20 @@ public class DocumentPrototype extends Scope
 
     }
 
+    public Map<String, TaskPrototype> getTasks()
+    {
+        return tasks;
+    }
+
     public void setWorkflow(WorkflowPrototype wf)
     {
         this.wf = wf;
     }
 
-
+    public WorkflowPrototype getWorkflow()
+    {
+        return wf;
+    }
 
     public void addImport(ImportPrototype imp) throws Exception
     {
@@ -68,7 +76,7 @@ class Scope extends NamedPrototype
 
     public void addField(Field field) throws Exception
     {
-        if( field.getName() != null && fields.get(field.getName()) != null)
+        if( field.getName() != null && fields.get(field.getName()) != null )
             throw new Exception("Duplicate field \"" + name + "\"");
         this.fields.put(field.getName(), field);
     }
